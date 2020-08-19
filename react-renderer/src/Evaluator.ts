@@ -11,7 +11,7 @@ import {
 import { mapValues } from "lodash";
 import { dist, randFloat } from "./Util";
 import seedrandom from "seedrandom";
-import { Tensor, Variable, scalar, pad2d, stack } from "@tensorflow/tfjs";
+import { Tensor, Variable, scalar, pad2d, stack, cos, sin } from "@tensorflow/tfjs";
 import { sc, scalarValue, differentiable, evalEnergyOn } from "./Optimizer";
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -129,12 +129,25 @@ const compDict = {
     };
   },
 
-  cos: (d: number): IFloatV<number> => {
+  // Accepts degrees; converts to radians
+  cosFloat: (d: number): IFloatV<number> => {
     return { tag: "FloatV", contents: Math.cos((d * Math.PI) / 180) };
   },
 
-  sin: (d: number): IFloatV<number> => {
+  // Accepts degrees; converts to radians
+  sinFloat: (d: number): IFloatV<number> => {
     return { tag: "FloatV", contents: Math.sin((d * Math.PI) / 180) };
+  },
+
+  // Accepts degrees; converts to radians
+  cos: (d: any) => {
+    console.log("d", d);
+    return { tag: "FloatV", contents: cos(d.mul(scalar(Math.PI)).div(scalar(180))) };
+  },
+
+  // Accepts degrees; converts to radians
+  sin: (d: any) => {
+    return { tag: "FloatV", contents: sin(d.mul(scalar(Math.PI)).div(scalar(180))) };
   },
 
   lineLength: ([type, props]: [string, any]) => {
@@ -394,8 +407,10 @@ export const resolvePath = (
   // HACK: this is a temporary way to consistently compare paths. We will need to make varymap much more efficient
   let varyingVal = varyingMap?.get(JSON.stringify(path));
   if (varyingVal) {
-    // When we look up a varying value, it will always be an autodiff-type, so convert autodiff-types to numbers if autodiff is off (in case a rendered value depends on some arithmetic that relies on a varying value)
-    if (!autodiff) { return floatVal(sc(varyingVal)); }
+    // Convert autodiff-types to numbers if autodiff is off (in case a rendered value depends on some arithmetic that relies on a varying value)
+    if (!autodiff && (typeof varyingVal !== "number")) { // Need to convert tensor to scalar
+      return floatVal(sc(varyingVal));
+    }
     return floatVal(varyingVal);
   } else {
     const gpiOrExpr = findExpr(trans, path);
