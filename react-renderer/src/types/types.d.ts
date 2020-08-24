@@ -67,6 +67,7 @@ interface CompNode<T> {
 }
 
 type Properties = { [k: string]: Value<number> };
+// TODO: Should this be Value<T> where T is usually an autodiff type?
 
 ////////////////////////////////////////////////////////////////////////////
 

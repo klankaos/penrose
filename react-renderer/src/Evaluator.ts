@@ -1,19 +1,11 @@
-import {
-    values,
-    pickBy,
-    range,
-    map,
-    mapKeys,
-    concat,
-    PropertyPath,
-    zip,
-} from "lodash";
+import { values, pickBy, concat, zip } from "lodash";
 import { mapValues } from "lodash";
-import { dist, randFloat, mapMap } from "./Util";
+import { mapMap } from "./Util";
 import { valueAutodiffToNumber } from "./EngineUtils";
 import seedrandom from "seedrandom";
-import { Tensor, Variable, scalar, pad2d, stack, cos, sin } from "@tensorflow/tfjs";
+import { Tensor, Variable, scalar } from "@tensorflow/tfjs";
 import { sc, differentiable, evalEnergyOn } from "./Optimizer";
+import { compDict, checkComp } from "./Computations";
 
 ////////////////////////////////////////////////////////////////////////////////
 // Evaluator
@@ -105,115 +97,6 @@ const evalFn = (
 };
 
 /**
- * Static dictionary of computation functions
- * TODO: consider using `Dictionary` type so all runtime lookups are type-safe, like here https://codeburst.io/five-tips-i-wish-i-knew-when-i-started-with-typescript-c9e8609029db
- * TODO: think about user extension of computation dict and evaluation of functions in there
- */
-const compDict = {
-    rgba: (r: number, g: number, b: number, a: number): IColorV<number> => {
-        return {
-            tag: "ColorV",
-            contents: {
-                tag: "RGBA",
-                contents: [r, g, b, a],
-            },
-        };
-    },
-
-    hsva: (h: number, s: number, v: number, a: number): IColorV<number> => {
-        return {
-            tag: "ColorV",
-            contents: {
-                tag: "HSVA",
-                contents: [h, s, v, a],
-            },
-        };
-    },
-
-    // Accepts degrees; converts to radians
-    cosFloat: (d: number): IFloatV<number> => {
-        return { tag: "FloatV", contents: Math.cos((d * Math.PI) / 180) };
-    },
-
-    // Accepts degrees; converts to radians
-    sinFloat: (d: number): IFloatV<number> => {
-        return { tag: "FloatV", contents: Math.sin((d * Math.PI) / 180) };
-    },
-
-    // Accepts degrees; converts to radians
-    cos: (d: Tensor): Value<Tensor> => {
-        console.log("d", d);
-        return { tag: "FloatV", contents: cos(d.mul(scalar(Math.PI)).div(scalar(180))) };
-    },
-
-    // Accepts degrees; converts to radians
-    sin: (d: any) => {
-        return { tag: "FloatV", contents: sin(d.mul(scalar(Math.PI)).div(scalar(180))) };
-    },
-
-    lineLength: ([type, props]: [string, any]) => {
-        const [p1, p2] = arrowPts(props);
-        return { tag: "FloatV", contents: dist(p1, p2) }; // TODO: Shouldn't this be written in terms of tf.js?
-    },
-
-    len: ([type, props]: [string, any]) => {
-        const [p1, p2] = arrowPts(props);
-        return { tag: "FloatV", contents: dist(p1, p2) };
-    },
-
-    orientedSquare: (arr1: any, arr2: any, pt: any, len: number) => {
-        console.log("orientedSquare", arr1, arr2, pt, len);
-        // TODO/NOTE: For now, this function is written in numbers only, since in the example, this functiondoes not appear downstream from the optimization
-        // But really the right thing to do is to write this in tensors and write a curve tensor-to-number conversion function (Where does that need to happen, anyway?)
-
-        const elems = [{ tag: "Pt", contents: [100, 100] },
-        { tag: "Pt", contents: [200, 200] },
-        { tag: "Pt", contents: [300, 150] }];
-        const path = { tag: "Open", contents: elems };
-        return { tag: "PathDataV", contents: [path] };
-    },
-
-    dot: (v: any, w: any) => {
-        const [tv, tw] = [stack(v), stack(w)];
-        return { tag: "FloatV", contents: tv.dot(tw) };
-    },
-
-    sampleColor: (alpha: number, colorType: string) => {
-        if (colorType === "rgb") {
-            const rgb = range(3).map((_) => randFloat(0.1, 0.9));
-            return {
-                tag: "ColorV",
-                contents: {
-                    tag: "RGBA",
-                    contents: [...rgb, alpha],
-                },
-            };
-        } else if (colorType === "hsv") {
-            const h = randFloat(0, 360);
-            return {
-                tag: "ColorV",
-                contents: {
-                    tag: "HSVA",
-                    contents: [h, 100, 80, alpha], // HACK: for the color to look good
-                },
-            };
-        } else throw new Error("unknown color type");
-    },
-
-};
-
-const arrowPts = ({ startX, startY, endX, endY }: Properties) =>
-    [
-        [startX.contents, startY.contents],
-        [endX.contents, endY.contents],
-    ] as [[number, number], [number, number]];
-
-const checkComp = (fn: string, args: ArgVal<number>[]) => {
-    if (!compDict[fn]) throw new Error(`Computation function "${fn}" not found`);
-};
-
-
-/**
  * Evaluate all properties in a shape.
  * @param shapeExpr unevaluated shape expression, where all props are expressions
  * @param trans current translation
@@ -234,14 +117,10 @@ export const evalShape = (
     const props = mapValues(propExprs, (prop: TagExpr<number>) => {
         if (prop.tag === "OptEval") {
             // For display, evaluate expressions with autodiff types (incl. varying vars as AD types), then convert to numbers
-            // The tradeoff is that evaluating the display step will be a little slower, but then we won't have to write two versions of all computations...
-            // TODO: Move computations to Constraints.ts; phase out the numeric ones
-
+            // (The tradeoff for using autodiff types is that evaluating the display step will be a little slower, but then we won't have to write two versions of all computations)
             const varyingAutodiff = mapMap(varyingVars, (v: number) => scalar(v));
-            console.log("prop contents", prop.contents, varyingVars, varyingAutodiff);
             const res: Value<Tensor> = (evalExpr(prop.contents, trans, varyingAutodiff, true) as IVal<Tensor>).contents;
             const resDisplay: Value<number> = valueAutodiffToNumber(res);
-
             return resDisplay;
         }
 
