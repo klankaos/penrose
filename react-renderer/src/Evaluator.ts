@@ -10,9 +10,10 @@ import {
 } from "lodash";
 import { mapValues } from "lodash";
 import { dist, randFloat, mapMap } from "./Util";
+import { valueAutodiffToNumber } from "./EngineUtils";
 import seedrandom from "seedrandom";
 import { Tensor, Variable, scalar, pad2d, stack, cos, sin } from "@tensorflow/tfjs";
-import { sc, scalarValue, differentiable, evalEnergyOn } from "./Optimizer";
+import { sc, differentiable, evalEnergyOn } from "./Optimizer";
 
 ////////////////////////////////////////////////////////////////////////////////
 // Evaluator
@@ -211,41 +212,6 @@ const checkComp = (fn: string, args: ArgVal<number>[]) => {
     if (!compDict[fn]) throw new Error(`Computation function "${fn}" not found`);
 };
 
-const valueAutodiffToNumber = (v: Value<Tensor>): Value<number> => {
-    // TODO: implement type conversion
-    if (v.tag === "FloatV") {
-        return {
-            tag: "FloatV",
-            contents: sc(v.contents)
-        };
-        // TODO: Is there a way to write these conversion functions with less boilerplate?!
-    } else if (v.tag === "ColorV") {
-        if (v.contents.tag === "RGBA") {
-            const rgb = v.contents;
-            return {
-                tag: "ColorV",
-                contents: {
-                    tag: "RGBA",
-                    contents: [sc(rgb.contents[0]), sc(rgb.contents[1]), sc(rgb.contents[2]), sc(rgb.contents[3])]
-                }
-            };
-        } else if (v.contents.tag === "HSVA") {
-            const hsv = v.contents;
-            return {
-                tag: "ColorV",
-                contents: {
-                    tag: "HSVA",
-                    contents: [sc(hsv.contents[0]), sc(hsv.contents[1]), sc(hsv.contents[2]), sc(hsv.contents[3])]
-                }
-            };
-        } else {
-            throw Error("unexpected color tag");
-        }
-    } else { // TODO: Convert paths, lists, anything else that can contain tensors
-        console.log("v", v); // TODO: Remove
-        return v as Value<number>;
-    }
-};
 
 /**
  * Evaluate all properties in a shape.

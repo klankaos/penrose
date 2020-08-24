@@ -308,16 +308,15 @@ type Value<T> =
     | IPtV<T>
     | IPathDataV<T>
     | IPtListV<T>
-    | IPaletteV<T>
     | IColorV<T>
+    | IPaletteV<T>
     | IFileV<T>
     | IStyleV<T>
     | IListV<T>
     | ITupV<T>
     | ILListV<T>
-    | IHMatrixV<T>;
-// TODO: Put polygon back in
-// | IPolygonV<T>;
+    | IHMatrixV<T>
+    | IPolygonV<T>;
 
 interface IFloatV<T> {
     tag: "FloatV";
@@ -356,12 +355,12 @@ interface IPtListV<T> {
 
 interface IPaletteV<T> {
     tag: "PaletteV";
-    contents: Color[];
+    contents: Color<T>[];
 }
 
 interface IColorV<T> {
     tag: "ColorV";
-    contents: Color;
+    contents: Color<T>;
 }
 
 interface IFileV<T> {
@@ -396,7 +395,8 @@ interface IHMatrixV<T> {
 
 interface IPolygonV<T> {
     tag: "PolygonV";
-    contents: [[T, T][][], [T, T][][], [[T, T], [T, T]], [T, T][]];
+    contents: [[T, T][][], [T, T][][],
+        [[T, T], [T, T]], [T, T][]];
 }
 
 type SubPath<T> = IClosed<T> | IOpen<T>;
@@ -422,16 +422,16 @@ interface IHMatrix<T> {
     dy: T;
 }
 
-type Color = IRGBA | IHSVA;
+type Color<T> = IRGBA<T> | IHSVA<T>;
 
-interface IRGBA {
+interface IRGBA<T> {
     tag: "RGBA";
-    contents: [number, number, number, number];
+    contents: [T, T, T, T];
 }
 
-interface IHSVA {
+interface IHSVA<T> {
     tag: "HSVA";
-    contents: [number, number, number, number];
+    contents: [T, T, T, T];
 }
 
 type Elem<T> =
