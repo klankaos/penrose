@@ -43,9 +43,8 @@ where In( p, H ) {
    p.angle = ?
 
    p.dotShape = Circle {
-      -- x : 630.0*cos(p.angle)/2.0
-      -- y : 630.0*sin(p.angle)/2.0
-      y : cos(p.angle)
+      x : 630.0*cos(p.angle)/2.0
+      y : 630.0*sin(p.angle)/2.0
       r : Global.pointSize
       strokeWidth : 0.0
       color : Colors.black
