@@ -1,3 +1,4 @@
+import { Tensor } from "@tensorflow/tfjs";
 import { insertExpr } from "./Evaluator";
 
 /**
@@ -6,19 +7,19 @@ import { insertExpr } from "./Evaluator";
  * @param path a path to a property value in one of the shapes
  */
 const findShapeProperty = (shapes: any, path: Path): Value<number> | any => {
-  if (path.tag === "FieldPath") {
-    throw new Error("pending paths must be property paths");
-  } else {
-    const [
-      { contents: subName },
-      field,
-      prop,
-    ] = (path as IPropertyPath).contents;
-    const shape = shapes.find(
-      (s: any) => s.properties.name.contents === `${subName}.${field}`
-    );
-    return shape.properties[prop];
-  }
+    if (path.tag === "FieldPath") {
+        throw new Error("pending paths must be property paths");
+    } else {
+        const [
+            { contents: subName },
+            field,
+            prop,
+        ] = (path as IPropertyPath).contents;
+        const shape = shapes.find(
+            (s: any) => s.properties.name.contents === `${subName}.${field}`
+        );
+        return shape.properties[prop];
+    }
 };
 
 /**
@@ -29,19 +30,19 @@ const findShapeProperty = (shapes: any, path: Path): Value<number> | any => {
  * TODO: test with an initial state that has pending values
  */
 export const insertPending = (state: State) => {
-  return {
-    ...state,
-    // clear up pending paths now that they are updated properly
-    pendingPaths: [],
-    // for each of the pending path, update the translation using the updated shapes with new label dimensions etc.
-    translation: state.pendingPaths
-      .map((p: Path) => [p, findShapeProperty(state.shapes, p).updated])
-      .reduce(
-        (trans: Translation, [path, v]: [Path, Value<number>]) =>
-          insertExpr(path, { tag: "Done", contents: v }, trans),
-        state.translation
-      ),
-  };
+    return {
+        ...state,
+        // clear up pending paths now that they are updated properly
+        pendingPaths: [],
+        // for each of the pending path, update the translation using the updated shapes with new label dimensions etc.
+        translation: state.pendingPaths
+            .map((p: Path) => [p, findShapeProperty(state.shapes, p).updated])
+            .reduce(
+                (trans: Translation, [path, v]: [Path, Value<Tensor>]) =>
+                    insertExpr(path, { tag: "Done", contents: v }, trans),
+                state.translation
+            ),
+    };
 };
 
 // export const updateVaryingState = async (data: any) => {

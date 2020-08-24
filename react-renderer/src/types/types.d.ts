@@ -7,7 +7,7 @@ interface LabelData {
     height: number;
 }
 
-type Translation = ITrans<number>; // TODO: number type might be different
+type Translation = ITrans<Tensor>; // TODO: number type might be different
 // type VaryMap<T = number> = [Path, T][];
 type VaryMap<T = number> = Map<string, T>;
 
@@ -42,7 +42,7 @@ interface IState {
     policyParams: any; // TODO: types
     oConfig: any; // TODO: types
     pendingPaths: Path[];
-    varyingValues: number[];
+    varyingValues: Tensor[];
     translation: Translation;
     shapeOrdering: string[];
     shapes: Shape[];

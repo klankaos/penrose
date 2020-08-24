@@ -99,6 +99,6 @@ export const compDict = {
 const arrowPts = ({ startX, startY, endX, endY }: any): [Tensor, Tensor] =>
     [stack([startX.contents, startY.contents]), stack([endX.contents, endY.contents])]
 
-export const checkComp = (fn: string, args: ArgVal<number>[]) => {
+export const checkComp = (fn: string, args: ArgVal<Tensor>[]) => {
     if (!compDict[fn]) throw new Error(`Computation function "${fn}" not found`);
 };
