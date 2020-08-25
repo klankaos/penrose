@@ -44,6 +44,10 @@ class Canvas extends React.Component<ICanvasProps> {
    */
   public static processData = async (data: any) => {
     const state: State = decodeState(data);
+    // TODO: Make sure that the state decoded from backend conforms to the types in types.d.ts, otherwise the typescript checking is just not valid for e.g. Tensors
+    // TODO: Walk translation to convert all TagExprs (tagged Done or Pending) in the state to Tensors, incl. varyingValues (also what is varyingState?), varyingMap...
+    // TODO: This could be done by making the functions in EngineUtils more general, to map over structures
+    console.log("processData state", state);
     const stateEvaled: State = evalTranslation(state);
     // TODO: return types
     const labeledShapes: any = await collectLabels(stateEvaled.shapes);
@@ -265,7 +269,7 @@ class Canvas extends React.Component<ICanvasProps> {
       ctm: !this.props.lock ? (this.svg.current as any).getScreenCTM() : null,
     });
   };
-  
+
   public render() {
     const {
       substanceMetadata,
@@ -296,12 +300,12 @@ class Canvas extends React.Component<ICanvasProps> {
         <desc>
           {`This diagram was created with Penrose (https://penrose.ink)${
             penroseVersion ? " version " + penroseVersion : ""
-          } on ${new Date()
-            .toISOString()
-            .slice(
-              0,
-              10
-            )}. If you have any suggestions on making this diagram more accessible, please contact us.\n`}
+            } on ${new Date()
+              .toISOString()
+              .slice(
+                0,
+                10
+              )}. If you have any suggestions on making this diagram more accessible, please contact us.\n`}
           {substanceMetadata && `${substanceMetadata}\n`}
           {styleMetadata && `${styleMetadata}\n`}
           {elementMetadata && `${elementMetadata}\n`}

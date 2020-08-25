@@ -123,9 +123,13 @@ export const evalShape = (
             const res: Value<Tensor> = (evalExpr(prop.contents, trans, varyingAutodiff, true) as IVal<Tensor>).contents;
             const resDisplay: Value<number> = valueAutodiffToNumber(res);
             return resDisplay;
+        } else if (prop.tag === "Done") {
+            // TODO -- Error thrown here because float values got here (should be Tensors), mistakenly converted to floats
+            console.log("Done", prop, prop.tag, prop.contents);
+            return valueAutodiffToNumber(prop.contents);
+        } else {
+            throw Error("Should not evaluate pending expressions for display!");
         }
-
-        return valueAutodiffToNumber(prop.contents);
     });
 
     const shape: Shape = { shapeType, properties: props };
@@ -558,7 +562,7 @@ export const encodeState = (state: State): any => {
 
 export const genVaryMap = (
     varyingPaths: Path[],
-    varyingValues: number[] | Variable[]
+    varyingValues: Variable[]
 ) => {
     if (varyingValues.length !== varyingPaths.length) {
         console.log(varyingPaths, varyingValues);
