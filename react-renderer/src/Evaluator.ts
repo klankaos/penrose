@@ -124,11 +124,11 @@ export const evalShape = (
             const resDisplay: Value<number> = valueAutodiffToNumber(res);
             return resDisplay;
         } else if (prop.tag === "Done") {
-            // TODO -- Error thrown here because float values got here (should be Tensors), mistakenly converted to floats
-            console.log("Done", prop, prop.tag, prop.contents);
             return valueAutodiffToNumber(prop.contents);
         } else {
-            throw Error("Should not evaluate pending expressions for display!");
+            // TODO: Figure out if pending expressions make it here
+            console.error("Should not evaluate pending expressions for display?", prop.contents);
+            return valueAutodiffToNumber(prop.contents);
         }
     });
 

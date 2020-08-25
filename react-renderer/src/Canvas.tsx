@@ -6,6 +6,7 @@ import { loadImages } from "./Util";
 import { insertPending } from "./PropagateUpdate";
 import { collectLabels } from "./utills/CollectLabels";
 import { evalTranslation, decodeState } from "./Evaluator";
+import { walkTranslationConvert } from "./EngineUtils";
 
 interface ICanvasProps {
   lock: boolean;
@@ -44,12 +45,20 @@ class Canvas extends React.Component<ICanvasProps> {
    */
   public static processData = async (data: any) => {
     const state: State = decodeState(data);
-    // TODO: Make sure that the state decoded from backend conforms to the types in types.d.ts, otherwise the typescript checking is just not valid for e.g. Tensors
-    // TODO: Walk translation to convert all TagExprs (tagged Done or Pending) in the state to Tensors, incl. varyingValues (also what is varyingState?), varyingMap...
-    // TODO: This could be done by making the functions in EngineUtils more general, to map over structures
-    console.log("processData state", state);
-    const stateEvaled: State = evalTranslation(state);
-    // TODO: return types
+
+    // Make sure that the state decoded from backend conforms to the types in types.d.ts, otherwise the typescript checking is just not valid for e.g. Tensors
+    // convert all TagExprs (tagged Done or Pending) in the translation to Tensors (autodiff types)
+    // TODO: do we need to convert varyingValues (also what is varyingState?), varyingMap...?
+
+    console.log("processData translation", state.translation.trMap);
+    const translationAD = walkTranslationConvert(state.translation);
+    const stateAD = { ...state, translation: translationAD };
+    console.log("processData new translation", translationAD.trMap, stateAD);
+
+    // After the pending values load, they only use the evaluated shapes (all in terms of numbers)
+    // The results of the pending values are then stored back in the translation as autodiff types
+    const stateEvaled: State = evalTranslation(stateAD);
+    // TODO: add return types
     const labeledShapes: any = await collectLabels(stateEvaled.shapes);
     const labeledShapesWithImgs: any = await loadImages(labeledShapes);
     const sortedShapes: any = await Canvas.sortShapes(

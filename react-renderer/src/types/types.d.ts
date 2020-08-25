@@ -7,8 +7,6 @@ interface LabelData {
     height: number;
 }
 
-type Translation = ITrans<Tensor>; // TODO: number type might be different
-// type VaryMap<T = number> = [Path, T][];
 type VaryMap<T = number> = Map<string, T>;
 
 type FnDone<T> = IFnDone<T>;
@@ -93,6 +91,7 @@ interface IVal<T> {
 }
 
 // type Translation<T> = ITrans<T>;
+type Translation = ITrans<Tensor>;
 
 interface ITrans<T> {
     // TODO: compGraph
@@ -129,15 +128,6 @@ interface IPending<T> {
     tag: "Pending";
     contents: Value<T>;
 }
-
-// interface Expr {
-//   tag: string;
-//   contents: any;
-// }
-
-// interface IIntLit extends Expr {
-//   tag: "IntLit";
-// }
 
 type Expr =
     | IIntLit
