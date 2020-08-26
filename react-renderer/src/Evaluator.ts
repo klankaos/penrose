@@ -25,6 +25,8 @@ export const evalTranslation = (s: State): State => {
     s.varyingMap = genVaryMap(s.varyingPaths, s.varyingValues);
     const varyingMapList = zip(s.varyingPaths, s.varyingValues) as [Path, Tensor][];
 
+    console.log("varying map", s.varyingMap, varyingMapList);
+
     // Insert all varying vals
     const trans = insertVaryings(s.translation, varyingMapList);
 
@@ -34,6 +36,8 @@ export const evalTranslation = (s: State): State => {
     );
 
     // Evaluate each of the shapes
+    // TODO: Why do some of the shapes still have float property values? did the map not work, or did the values get set again somewhere?
+    // Do the expr numbers need to be converted too... or are they done on-the-fly in evaluation
     const [shapesEvaled, transEvaled] = shapeExprs.reduce(
         ([currShapes, tr]: [Shape[], Translation], e: IFGPI<Tensor>) =>
             evalShape(e, tr, s.varyingMap, currShapes),
@@ -112,18 +116,22 @@ export const evalShape = (
     shapes: Shape[]
 ): [Shape[], Translation] => {
 
+    console.log("evalShape shape", shapeExpr, shapeExpr.contents, varyingVars, shapes);
+
     const [shapeType, propExprs] = shapeExpr.contents;
-    const varyingAutodiff = mapMap(varyingVars, (v: number) => scalar(v));
+    // TODO: Remove?
+    // const varyingAutodiff = mapMap(varyingVars, (v: number) => scalar(v));
 
     // Make sure all props are evaluated to values instead of shapes
     const props = mapValues(propExprs, (prop: TagExpr<Tensor>): Value<number> => {
         if (prop.tag === "OptEval") {
             // For display, evaluate expressions with autodiff types (incl. varying vars as AD types), then convert to numbers
             // (The tradeoff for using autodiff types is that evaluating the display step will be a little slower, but then we won't have to write two versions of all computations)
-            const res: Value<Tensor> = (evalExpr(prop.contents, trans, varyingAutodiff, true) as IVal<Tensor>).contents;
+            const res: Value<Tensor> = (evalExpr(prop.contents, trans, varyingVars, true) as IVal<Tensor>).contents;
             const resDisplay: Value<number> = valueAutodiffToNumber(res);
             return resDisplay;
         } else if (prop.tag === "Done") {
+            console.log("done prop", prop, prop.contents);
             return valueAutodiffToNumber(prop.contents);
         } else {
             // TODO: Figure out if pending expressions make it here
@@ -189,12 +197,14 @@ export const evalExpr = (
                 throw new Error("encountered an unsubstituted varying value");
             } else {
                 const val = e.contents.contents;
+                console.log("encountered AFloat", val, scalar(val));
+
                 return {
                     tag: "Val",
                     // Fixed number is stored in translation as number, made differentiable when encountered
                     contents: {
                         tag: "FloatV",
-                        contents: differentiable(val), // TODO: make sure translation contains all AD types, no numbers
+                        contents: scalar(val),
                     },
                 };
             }
@@ -571,6 +581,7 @@ export const genVaryMap = (
         throw new Error("Different numbers of varying vars vs. paths");
     }
     const res = new Map();
+    console.log("genVaryMap", varyingPaths, varyingValues);
     varyingPaths.forEach((path, index) =>
         res.set(JSON.stringify(path), varyingValues[index])
     );

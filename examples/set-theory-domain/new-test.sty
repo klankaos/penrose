@@ -1,0 +1,11 @@
+Set `A` {
+    A.val = 0.0
+    A.shape = Circle {
+       r: 100.0
+       color: rgba(0.0, 0.5, 0.5, 0.5)
+       x: A.shape.r + 1.0
+       -- TODO: If a float is set to be 0.0, it gets parsed as OptEval AnnoFloat Fixed 1.0
+       -- Whereas `y`, the float is sampled to be Done 307.8 and I guess appears in the varyingmap?
+       -- Maybe because I didn't convert it, it evaluated to a float and was put in the translation and just never converted
+    }
+}

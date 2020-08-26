@@ -7,7 +7,7 @@ interface LabelData {
     height: number;
 }
 
-type VaryMap<T = number> = Map<string, T>;
+type VaryMap<T = Tensor> = Map<string, T>;
 
 type FnDone<T> = IFnDone<T>;
 interface IFnDone<T> {
@@ -112,7 +112,7 @@ interface IFGPI<T> {
 }
 
 type GPIExpr<T> = [string, { [k: string]: TagExpr<T> }];
-type TagExpr<T> = IOptEval<T> | IDone<T> | IPending<T>;
+type TagExpr<T> = IOptEvalev<T> | IDone<T> | IPending<T>;
 
 interface IOptEval<T> {
     tag: "OptEval";

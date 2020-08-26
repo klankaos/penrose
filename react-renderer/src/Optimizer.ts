@@ -106,7 +106,8 @@ export const stepEP = (state: State, steps: number, evaluate = true) => {
 
             const newParams: Params = {
                 ...state.params,
-                mutableUOstate: state.varyingValues.map(differentiable),
+                // These are made into variables when received by the frontend, in `processData`
+                mutableUOstate: state.varyingValues,
                 weight: initConstraintWeight,
                 UOround: 0,
                 EPround: 0,
@@ -246,10 +247,11 @@ export const evalEnergyOn = (state: State) => {
     };
 };
 
+// TODO: This is an old function and should be phased out; may no longer compile
 export const step = (state: State, steps: number) => {
     const f = evalEnergyOn(state);
     const fgrad = gradF(f);
-    const xs = state.varyingValues.map(differentiable);
+    const xs = state.varyingValues;
     // const xs = state.varyingState; // NOTE: use cached varying values
     // NOTE: minimize will mutates xs
     const { energy } = minimize(f, fgrad, xs, steps);
