@@ -75,6 +75,9 @@ class Canvas extends React.Component<ICanvasProps> {
     );
 
     const nonEmpties = await sortedShapes.filter(Canvas.notEmptyLabel);
+
+    console.error("nonEmpties", nonEmpties);
+
     const processed = await insertPending({
       ...stateEvaled,
       shapes: nonEmpties,

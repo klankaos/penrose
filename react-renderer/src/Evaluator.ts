@@ -197,7 +197,6 @@ export const evalExpr = (
                 throw new Error("encountered an unsubstituted varying value");
             } else {
                 const val = e.contents.contents;
-                console.log("encountered AFloat", val, scalar(val));
 
                 return {
                     tag: "Val",
