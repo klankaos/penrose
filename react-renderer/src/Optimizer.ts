@@ -94,10 +94,11 @@ export const stepEP = (state: State, steps: number, evaluate = true) => {
     const optParams = newState.params; // this is just a reference, so updating this will update newState as well
     const xs: Variable[] = optParams.mutableUOstate; // also a reference
 
+    console.log("-------------------");
     console.log("step EP | weight: ", weight, "| EP round: ", optParams.EPround, " | UO round: ", optParams.UOround);
     console.log("params: ", optParams);
     // console.log("state: ", state);
-    console.log("number of varying variables", state.varyingValues, state.varyingValues.length);
+    console.log("number of varying variables", state.varyingValues.length); // Log these values with scalarValue if needed, but it may block/slow down optimization
 
     switch (optStatus.tag) {
         case "NewIter": {

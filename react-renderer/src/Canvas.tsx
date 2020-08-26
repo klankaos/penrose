@@ -50,18 +50,12 @@ class Canvas extends React.Component<ICanvasProps> {
 
     // Make sure that the state decoded from backend conforms to the types in types.d.ts, otherwise the typescript checking is just not valid for e.g. Tensors
     // convert all TagExprs (tagged Done or Pending) in the translation to Tensors (autodiff types)
-    // TODO: do we need to convert varyingValues (also what is varyingState?), varyingMap...?
-
-    console.log("processData state", state, state.varyingMap, state.varyingPaths, state.varyingValues);
-    console.log("processData translation", state.translation.trMap);
     const translationAD = walkTranslationConvert(state.translation);
-    // TODO: convert varyingvals
     const stateAD = {
       ...state,
       translation: translationAD,
-      varyingValues: state.varyingValues.map(e => differentiable(e)) // TODO: Does this need to be explicitly applied anywhere else in EngineUtils?
+      varyingValues: state.varyingValues.map(e => differentiable(e))
     };
-    console.log("processData new translation", translationAD.trMap, stateAD);
 
     // After the pending values load, they only use the evaluated shapes (all in terms of numbers)
     // The results of the pending values are then stored back in the translation as autodiff types
@@ -73,15 +67,12 @@ class Canvas extends React.Component<ICanvasProps> {
       labeledShapesWithImgs,
       data.shapeOrdering
     );
-
     const nonEmpties = await sortedShapes.filter(Canvas.notEmptyLabel);
-
-    console.error("nonEmpties", nonEmpties);
-
     const processed = await insertPending({
       ...stateEvaled,
       shapes: nonEmpties,
     });
+
     return processed;
   };
 

@@ -12,7 +12,6 @@ function mapTup2<T, S>(
     f: (arg: T) => S,
     t: [T, T]
 ): [S, S] {
-    console.log("t", t);
     // TODO: Polygon seems to be getting through with null to the frontend with previously working set examples -- not sure why?
     // TODO: Should do null checks more systematically across the translation
     if (t[0] === null || t[1] === null) {
@@ -43,8 +42,6 @@ function mapFloat<T, S>(
     f: (arg: T) => S,
     v: IFloatV<T>
 ): IFloatV<S> {
-    console.log("mapFloat v", v);
-
     return {
         tag: "FloatV",
         contents: f(v.contents)
@@ -123,8 +120,6 @@ function mapPolygon<T, S>(
     f: (arg: T) => S,
     v: IPolygonV<T>
 ): IPolygonV<S> {
-    console.log("polygon", v, v.contents);
-
     const xs0 = mapTup2LList(f, v.contents[0]);
     const xs1 = mapTup2LList(f, v.contents[1]);
     const xs2 = [mapTup2(f, v.contents[2][0]), mapTup2(f, v.contents[2][1])] as [[S, S], [S, S]];
@@ -237,8 +232,7 @@ export function mapTagExpr<T, S>(
             contents: mapValueNumeric(f, e.contents)
         };
     } else if (e.tag === "OptEval") {
-        // TODO: Should we map over this anyway?
-        console.error("not tag expr; did not convert OptEval Expr");
+        // We don't convert expressions because any numbers encountered in them will be converted by the evaluator as needed
         return e;
     } else {
         throw Error("unrecognized tag");
@@ -253,8 +247,6 @@ export function mapGPIExpr<T, S>(
         .map(([prop, val]) =>
             [prop, mapTagExpr(f, val)]
         );
-
-    console.log("new gpi prop dict", Object.fromEntries(propDict));
 
     return [e[0], Object.fromEntries(propDict)];
 };
@@ -277,12 +269,8 @@ export function mapTranslation<T, S>(
                     }
                 });
 
-            console.log("new fdict2", name, Object.fromEntries(fdict2));
-
             return [name, Object.fromEntries(fdict2)];
         });
-
-    console.log("newTrMap", Object.fromEntries(newTrMap));
 
     return {
         ...trans,
