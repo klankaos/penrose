@@ -242,7 +242,7 @@ export function mapGPIExpr<T, S>(
             [prop, mapTagExpr(f, val)]
         );
 
-    return Object.fromEntries(propDict);
+    return [e[0], Object.fromEntries(propDict)];
 };
 
 export function mapTranslation<T, S>(
@@ -255,15 +255,15 @@ export function mapTranslation<T, S>(
             const fdict2 = Object.entries(fdict)
                 .map(([prop, val]) => {
                     if (val.tag === "FExpr") {
-                        return [prop, mapTagExpr(f, val.contents)];
+                        return [prop, { tag: "FExpr", contents: mapTagExpr(f, val.contents) }];
                     } else if (val.tag === "FGPI") {
-                        return [prop, mapGPIExpr(f, val.contents)];
+                        return [prop, { tag: "FGPI", contents: mapGPIExpr(f, val.contents) }];
                     } else {
                         throw Error("unknown tag on field expr");
                     }
                 });
 
-            return [name, fdict2];
+            return [name, Object.fromEntries(fdict2)];
         });
 
     return {

@@ -33,7 +33,6 @@ export const compDict = {
 
     // Accepts degrees; converts to radians
     cos: (d: Tensor): Value<Tensor> => {
-        console.log("d", d);
         return { tag: "FloatV", contents: cos(d.mul(scalar(Math.PI)).div(scalar(180))) };
     },
 

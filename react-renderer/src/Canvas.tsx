@@ -50,10 +50,10 @@ class Canvas extends React.Component<ICanvasProps> {
     // convert all TagExprs (tagged Done or Pending) in the translation to Tensors (autodiff types)
     // TODO: do we need to convert varyingValues (also what is varyingState?), varyingMap...?
 
-    console.log("processData translation", state.translation.trMap);
+    // console.log("processData translation", state.translation.trMap);
     const translationAD = walkTranslationConvert(state.translation);
     const stateAD = { ...state, translation: translationAD };
-    console.log("processData new translation", translationAD.trMap, stateAD);
+    // console.log("processData new translation", translationAD.trMap, stateAD);
 
     // After the pending values load, they only use the evaluated shapes (all in terms of numbers)
     // The results of the pending values are then stored back in the translation as autodiff types

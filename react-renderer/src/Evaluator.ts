@@ -449,11 +449,13 @@ export const findExpr = (
     path: Path
 ): TagExpr<Tensor> | IFGPI<Tensor> => {
     let name, field, prop;
+
     switch (path.tag) {
         case "FieldPath":
             [name, field] = path.contents;
             // Type cast to field expression
             const fieldExpr = trans.trMap[name.contents][field];
+
             switch (fieldExpr.tag) {
                 case "FGPI":
                     return fieldExpr;
